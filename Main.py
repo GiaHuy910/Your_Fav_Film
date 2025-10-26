@@ -41,7 +41,17 @@ mcredit['title'] = mcredit['original_title']
 # 2. Chuẩn bị text kết hợp
 # ===========================
 def combine_text(row):
-    return f"{' '.join(row['genres'])} {' '.join(row['keywords'])} {' '.join(row['cast'])} {' '.join(row['crew'])} {' '.join(row['overview'])}"
+    return f"{
+        ' '.join(row['genres'])
+        } {
+            ' '.join(row['keywords'])
+            } {
+                ' '.join(row['cast'])
+                } {
+                    ' '.join(row['crew'])
+                    } {
+                        ' '.join(row['overview'])
+                        }"
 
 mcredit['combined_features'] = mcredit.apply(combine_text, axis=1)
 
@@ -55,7 +65,7 @@ CACHE_TEXT_FILE = "combined_features_cache.pkl"
 model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
 
 if os.path.exists(CACHE_EMB_FILE) and os.path.exists(CACHE_TEXT_FILE):
-    print("🔹 Tải embeddings từ cache...")
+    print(" Tải embeddings từ cache...")
     with open(CACHE_EMB_FILE, "rb") as f:
         embeddings = pickle.load(f)
     with open(CACHE_TEXT_FILE, "rb") as f:
@@ -63,21 +73,21 @@ if os.path.exists(CACHE_EMB_FILE) and os.path.exists(CACHE_TEXT_FILE):
 
     # Kiểm tra nếu dữ liệu không thay đổi
     if list(mcredit['combined_features']) != cached_texts:
-        print("⚠️ Dataset thay đổi! Tạo lại embeddings...")
+        print(" Dataset thay đổi! Tạo lại embeddings...")
         embeddings = model.encode(mcredit['combined_features'], show_progress_bar=True)
         with open(CACHE_EMB_FILE, "wb") as f:
             pickle.dump(embeddings, f)
         with open(CACHE_TEXT_FILE, "wb") as f:
             pickle.dump(list(mcredit['combined_features']), f)
 else:
-    print("🛠 Lần đầu chạy - tạo embeddings và lưu cache...")
+    print("Lần đầu chạy - tạo embeddings và lưu cache...")
     embeddings = model.encode(mcredit['combined_features'], show_progress_bar=True)
     with open(CACHE_EMB_FILE, "wb") as f:
         pickle.dump(embeddings, f)
     with open(CACHE_TEXT_FILE, "wb") as f:
         pickle.dump(list(mcredit['combined_features']), f)
 
-print("✅ Embeddings đã sẵn sàng!")
+print("Embeddings đã sẵn sàng!")
 
 # ===========================
 # 4. Hàm recommend
@@ -87,27 +97,24 @@ def recommend_movie(user_description, top_n=5):
     sim_scores = cosine_similarity(user_vec, embeddings)[0]
     top_indices = np.argsort(sim_scores)[::-1][:top_n]
     
-    print("\n🔍 Gợi ý phim phù hợp với mô tả:")
+    print("\nGợi ý phim phù hợp với mô tả:")
     for idx in top_indices:
-        print(f"- 🎬 {mcredit['title'].iloc[idx]}  (Similarity: {sim_scores[idx]:.4f})")
+        print(f"- {mcredit['title'].iloc[idx]}  (Similarity: {sim_scores[idx]:.4f})")
     
     return mcredit['title'].iloc[top_indices].values
 
 # ===========================
 # 5. Test
 # ===========================
-while True:
-    user_input=str(input('Nhập mô tả của bạn(nếu muốn dừng, nhập "end") : '))
-    if(user_input=="end"):
-        break
-    try:
-        top_n=int(input('Bạn muốn gợi ý bao nhiêu bộ phim(int) :'))
-        recommend_movie(user_input,top_n)
-    except:
-        raise ValueError('Hãy nhập đúng số nguyên!')
-
-
-
+#while True:
+#    user_input=str(input('Nhập mô tả của bạn(nếu muốn dừng, nhập "end") : '))
+#    if(user_input=="end"):
+#    try:
+#        top_n=int(input('Bạn muốn gợi ý bao nhiêu bộ phim(int) :'))
+#recommend_movie(user_input,top_n)
+#    except:
+#        raise ValueError('Hãy nhập đúng số nguyên!')
+print(mcredit['combined_features'].head(10))
 #user_input_vi = "một bộ phim hành động có yếu tố khoa học viễn tưởng và cuộc chiến chống quái vật"
 #recommend_movie(user_input_vi, top_n=5)
 
